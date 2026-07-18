@@ -24,7 +24,8 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:4173",
-  "https://ricx.netlify.app"
+  "https://ricx.netlify.app",
+  "https://ricx-ecommeerce-project-2.onrender.com"
 ];
 
 app.use(cors({
