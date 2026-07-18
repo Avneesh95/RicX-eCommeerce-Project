@@ -13,8 +13,8 @@ const isLocalEnv =
 //    Override with VITE_API_URL in a .env file if your local backend
 //    runs on a different port than 4000.
 const localBaseURL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
-const liveBaseURL = "https://ricx.onrender.com/api";
 
+const liveBaseURL = import.meta.env.VITE_API_URL || "https://ricx.onrender.com/api";
 const resolvedBaseURL = isLocalEnv ? localBaseURL : liveBaseURL;
 
 const api = axios.create({
