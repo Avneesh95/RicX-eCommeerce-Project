@@ -226,10 +226,10 @@ const generateInvoice = async (req, res) => {
       .font("Helvetica")
       .fontSize(10)
       .text("Subtotal", 350, boxY + 18)
-      .text(`₹${subtotal.toLocaleString("en-IN")}`, 430, boxY + 18, {
-        width: 95,
-        align: "right",
-      });
+   .text(`Rs. ${item.price.toLocaleString("en-IN")}`, 410, tableTop, {
+  width: 60,
+  align: "right",
+})
 
     doc
       .text("Shipping", 350, boxY + 40)
@@ -289,7 +289,7 @@ const generateInvoice = async (req, res) => {
       .fillColor(SECONDARY)
       .font("Helvetica")
       .fontSize(9)
-      .text("Need help? support@ricxstore.com | www.ricxstore.com", 50, footerY + 42, {
+      .text("Need help? ricx.ecommerce@gmail.com | www.ricxstore.com", 50, footerY + 42, {
         align: "center",
       })
       .text(
