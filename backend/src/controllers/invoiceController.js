@@ -27,193 +27,277 @@ const generateInvoice = async (req, res) => {
 
     doc.pipe(res);
 
-    // Color Palette Definition
-    const PRIMARY_COLOR = "#4F46E5"; // Indigo Accent
-    const TEXT_DARK = "#1F2937";    // Near Black
-    const TEXT_LIGHT = "#6B7280";   // Slate Gray
-    const BG_LIGHT = "#F9FAFB";     // Cool White/Light Gray
-    const BORDER_COLOR = "#E5E7EB"; // Sophisticated Frame Border
+    // Colors
+    const PRIMARY = "#111827";
+    const SECONDARY = "#6B7280";
+    const BORDER = "#E5E7EB";
+    const SUCCESS = "#10B981";
+    const LIGHT = "#F9FAFB";
 
-    // ==================================
-    // ELEGANT FRAME BORDER
-    // ==================================
-    // Draw a premium double-line border framework around the whole page margins
+    // Generate invoice number
+    const invoiceNumber = `RCX-${new Date().getFullYear()}${String(
+      new Date().getMonth() + 1
+    ).padStart(2, "0")}${String(new Date().getDate()).padStart(
+      2,
+      "0"
+    )}-${order._id.toString().slice(-5).toUpperCase()}`;
+
+    // ================= HEADER =================
     doc
-      .strokeColor(PRIMARY_COLOR)
-      .lineWidth(1)
-      .rect(30, 30, 535, 782)
-      .stroke();
+      .fillColor(PRIMARY)
+      .font("Helvetica-Bold")
+      .fontSize(28)
+      .text("RicX", 50, 50);
 
     doc
-      .strokeColor(BORDER_COLOR)
-      .lineWidth(0.5)
-      .rect(34, 34, 527, 774)
-      .stroke();
-
-    // ==================================
-    // BRAND HEADER
-    // ==================================
-    doc
-      .fillColor(PRIMARY_COLOR)
-      .fontSize(24)
-      .text("RicX Store", 55, 55, { bold: true })
+      .fillColor(SECONDARY)
+      .font("Helvetica")
       .fontSize(10)
-      .fillColor(TEXT_LIGHT)
-      .text("Premium Online Shopping", 55, 85);
+      .text("Premium Online Shopping", 50, 85);
 
-    // Right-aligned header metadata (Stacked cleanly to completely prevent overlap)
     doc
-      .fillColor(TEXT_DARK)
-      .fontSize(20)
-      .text("INVOICE", 400, 52, { align: "right" })
-      .fontSize(9)
-      .fillColor(TEXT_LIGHT)
-      .text(`Invoice ID: ${order._id}`, 245, 77, { width: 295, align: "right" })
-      .text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 400, 92, { align: "right" });
+      .fillColor(PRIMARY)
+      .font("Helvetica-Bold")
+      .fontSize(22)
+      .text("INVOICE", 400, 50, { align: "right" });
 
-    // Decorative top divider line
     doc
-      .strokeColor(BORDER_COLOR)
+      .fillColor(SECONDARY)
+      .font("Helvetica")
+      .fontSize(10)
+      .text(`Invoice No: ${invoiceNumber}`, 350, 85, { align: "right" })
+      .text(
+        `Date: ${new Date(order.createdAt).toLocaleDateString("en-IN")}`,
+        350,
+        100,
+        { align: "right" }
+      );
+
+    // Divider
+    doc
+      .strokeColor(BORDER)
       .lineWidth(1)
-      .moveTo(55, 115)
-      .lineTo(540, 115)
+      .moveTo(50, 130)
+      .lineTo(545, 130)
       .stroke();
 
-    // ==================================
-    // BILLING & SHIPPING DETAILS (Two-Column Layout)
-    // ==================================
-    const detailsTop = 135;
+    // ================= CUSTOMER & SHIPPING =================
+    const top = 150;
 
-    // Left Column: Customer Details
+    // Customer
     doc
-      .fillColor(PRIMARY_COLOR)
+      .fillColor(PRIMARY)
+      .font("Helvetica-Bold")
       .fontSize(12)
-      .text("Customer Details", 55, detailsTop)
-      .moveDown(0.4)
-      .fillColor(TEXT_DARK)
-      .fontSize(10)
-      .text(`Name: ${order.user.name}`)
-      .text(`Email: ${order.user.email}`)
-      .text(`Phone: ${order.shippingAddress.phone || "N/A"}`);
+      .text("Customer Details", 50, top);
 
-    // Right Column: Shipping Address
     doc
-      .fillColor(PRIMARY_COLOR)
+      .fillColor(PRIMARY)
+      .font("Helvetica")
+      .fontSize(10)
+      .text(order.user?.name || "Customer", 50, top + 22)
+      .text(order.user?.email || "N/A", 50, top + 38)
+      .text(order.shippingAddress?.phone || "N/A", 50, top + 54);
+
+    // Shipping
+    doc
+      .fillColor(PRIMARY)
+      .font("Helvetica-Bold")
       .fontSize(12)
-      .text("Shipping Address", 300, detailsTop)
-      .moveDown(0.4)
-      .fillColor(TEXT_DARK)
+      .text("Shipping Address", 320, top);
+
+    doc
+      .fillColor(PRIMARY)
+      .font("Helvetica")
       .fontSize(10)
-      .text(`${order.shippingAddress.fullName}`)
-      .text(`${order.shippingAddress.address}`)
-      .text(`${order.shippingAddress.city}, ${order.shippingAddress.state}`)
-      .text(`${order.shippingAddress.country} - ${order.shippingAddress.pincode}`);
+      .text(order.shippingAddress?.fullName || "N/A", 320, top + 22)
+      .text(order.shippingAddress?.address || "N/A", 320, top + 38, {
+        width: 200,
+      })
+      .text(
+        `${order.shippingAddress?.city || ""}, ${
+          order.shippingAddress?.state || ""
+        }`,
+        320,
+        top + 68
+      )
+      .text(
+        `${order.shippingAddress?.country || ""} - ${
+          order.shippingAddress?.pincode || ""
+        }`,
+        320,
+        top + 84
+      );
 
-    // ==================================
-    // ORDER METADATA BAR
-    // ==================================
-    const metaTop = 235;
-    
-    // Soft container box background
+    // Divider
     doc
-      .rect(55, metaTop, 485, 35)
-      .fill(BG_LIGHT);
-
-    doc
-      .fillColor(TEXT_DARK)
-      .fontSize(9)
-      .text(`Payment Method: ${order.paymentMethod}`, 70, metaTop + 13)
-      .text(`Payment Status: ${order.paymentStatus.toUpperCase()}`, 240, metaTop + 13)
-      .text(`Order Status: ${order.status.toUpperCase()}`, 410, metaTop + 13);
-
-    // ==================================
-    // PRODUCTS TABLE
-    // ==================================
-    let tableTop = 295;
-
-    // Table Header Row
-    doc
-      .fillColor(PRIMARY_COLOR)
-      .fontSize(10)
-      .text("Product Details", 55, tableTop)
-      .text("Qty", 350, tableTop, { width: 40, align: "center" })
-      .text("Price", 410, tableTop, { width: 60, align: "right" })
-      .text("Total", 480, tableTop, { width: 60, align: "right" });
-
-    // Underline beneath headers
-    doc
-      .strokeColor(PRIMARY_COLOR)
-      .lineWidth(1)
-      .moveTo(55, tableTop + 15)
-      .lineTo(540, tableTop + 15)
+      .strokeColor(BORDER)
+      .moveTo(50, 275)
+      .lineTo(545, 275)
       .stroke();
 
-    tableTop += 25;
-    doc.fillColor(TEXT_DARK);
+    // ================= ORDER INFO =================
+    doc
+      .fillColor(SECONDARY)
+      .font("Helvetica-Bold")
+      .fontSize(10)
+      .text(`Payment Method: ${order.paymentMethod}`, 50, 290);
 
-    // Table Body Items Loop
-    order.orderItems.forEach((item) => {
-      const itemTotal = item.quantity * item.price;
+    // Payment badge
+    doc.circle(445, 297, 4).fill(SUCCESS);
+
+    doc
+      .fillColor(SUCCESS)
+      .font("Helvetica-Bold")
+      .text(order.paymentStatus?.toUpperCase() || "PENDING", 455, 290);
+
+    doc
+      .fillColor(SECONDARY)
+      .font("Helvetica-Bold")
+      .text(`Order Status: ${order.status?.toUpperCase()}`, 50, 310);
+
+    // ================= TABLE HEADER =================
+    let y = 350;
+
+    doc.rect(50, y, 495, 26).fill(PRIMARY);
+
+    doc
+      .fillColor("white")
+      .font("Helvetica-Bold")
+      .fontSize(10)
+      .text("Product", 60, y + 8)
+      .text("Qty", 340, y + 8, { width: 40, align: "center" })
+      .text("Price", 410, y + 8, { width: 60, align: "right" })
+      .text("Total", 480, y + 8, { width: 55, align: "right" });
+
+    y += 26;
+
+    // ================= PRODUCTS =================
+    doc.font("Helvetica").fontSize(10);
+
+    order.orderItems.forEach((item, index) => {
+      const rowHeight = 32;
+      const total = item.quantity * item.price;
+
+      if (index % 2 === 0) {
+        doc.rect(50, y, 495, rowHeight).fill(LIGHT);
+      }
 
       doc
-        .fontSize(10)
-        .text(item.product.name.substring(0, 42), 55, tableTop, { width: 280 })
-        .text(item.quantity.toString(), 350, tableTop, { width: 40, align: "center" })
-        .text(`Rs. ${item.price.toLocaleString("en-IN")}`, 410, tableTop, { width: 60, align: "right" })
-        .text(`Rs. ${itemTotal.toLocaleString("en-IN")}`, 480, tableTop, { width: 60, align: "right" });
+        .fillColor(PRIMARY)
+        .text(item.product?.name || "Product", 60, y + 10, {
+          width: 250,
+        })
+        .text(String(item.quantity), 340, y + 10, {
+          width: 40,
+          align: "center",
+        })
+        .text(`₹${item.price.toLocaleString("en-IN")}`, 410, y + 10, {
+          width: 60,
+          align: "right",
+        })
+        .text(`₹${total.toLocaleString("en-IN")}`, 480, y + 10, {
+          width: 55,
+          align: "right",
+        });
 
-      // Light gridline between items
-      doc
-        .strokeColor("#F3F4F6")
-        .lineWidth(0.5)
-        .moveTo(55, tableTop + 20)
-        .lineTo(540, tableTop + 20)
-        .stroke();
-
-      tableTop += 30;
+      y += rowHeight;
     });
 
-    // ==================================
-    // SUMMARY / TOTALS SECTION
-    // ==================================
-    tableTop += 10;
-
+    // Divider
     doc
-      .fillColor(PRIMARY_COLOR)
-      .fontSize(13)
-      .text("Grand Total:", 350, tableTop, { width: 100, align: "right" })
-      .fillColor("#059669") 
-      .text(`Rs. ${order.totalAmount.toLocaleString("en-IN")}`, 455, tableTop, { width: 85, align: "right" });
-
-    // ==================================
-    // FOOTER & PREMIUM THANK YOU NOTE
-    // ==================================
-    const footerTop = 715;
-
-    doc
-      .strokeColor(BORDER_COLOR)
-      .lineWidth(1)
-      .moveTo(55, footerTop)
-      .lineTo(540, footerTop)
+      .strokeColor(BORDER)
+      .moveTo(50, y + 5)
+      .lineTo(545, y + 5)
       .stroke();
 
-    // New Warm, Professional Thank You Message
+    // ================= SUMMARY =================
+    const subtotal = order.totalAmount;
+    const shipping = 0;
+    const discount = 0;
+    const tax = 0;
+
+    const boxY = y + 25;
+
+    doc.rect(330, boxY, 215, 120).fill(LIGHT);
+
     doc
+      .fillColor(PRIMARY)
+      .font("Helvetica")
+      .fontSize(10)
+      .text("Subtotal", 350, boxY + 18)
+      .text(`₹${subtotal.toLocaleString("en-IN")}`, 430, boxY + 18, {
+        width: 95,
+        align: "right",
+      });
+
+    doc
+      .text("Shipping", 350, boxY + 40)
+      .text(shipping === 0 ? "FREE" : `₹${shipping}`, 430, boxY + 40, {
+        width: 95,
+        align: "right",
+      });
+
+    doc
+      .text("Discount", 350, boxY + 62)
+      .text(`-₹${discount}`, 430, boxY + 62, {
+        width: 95,
+        align: "right",
+      });
+
+    doc
+      .text("Tax", 350, boxY + 84)
+      .text(`₹${tax}`, 430, boxY + 84, {
+        width: 95,
+        align: "right",
+      });
+
+    doc
+      .strokeColor(BORDER)
+      .moveTo(345, boxY + 102)
+      .lineTo(525, boxY + 102)
+      .stroke();
+
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(14)
+      .text("TOTAL", 350, boxY + 112)
+      .fillColor(SUCCESS)
+      .text(`₹${order.totalAmount.toLocaleString("en-IN")}`, 430, boxY + 112, {
+        width: 95,
+        align: "right",
+      });
+
+    // ================= FOOTER =================
+    const footerY = 720;
+
+    doc
+      .strokeColor(BORDER)
+      .moveTo(50, footerY)
+      .lineTo(545, footerY)
+      .stroke();
+
+    doc
+      .fillColor(PRIMARY)
+      .font("Helvetica-Bold")
       .fontSize(12)
-      .fillColor(PRIMARY_COLOR)
-      .text("Thank You For Choosing RicX Store!", 55, footerTop + 15, { align: "center", bold: true });
+      .text("Thank you for shopping with RicX ❤️", 50, footerY + 18, {
+        align: "center",
+      });
 
     doc
-      .fontSize(9.5)
-      .fillColor(TEXT_DARK)
-      .text("We truly value your trust and support. We hope you absolute love your new premium items, and we look forward to serving you again soon.", 80, footerTop + 32, { align: "center", width: 435, lineGap: 2 });
-
-    // Legal / Support metadata
-    doc
-      .fontSize(8)
-      .fillColor(TEXT_LIGHT)
-      .text("This is a computer-generated invoice and does not require a physical signature.", 55, footerTop + 68, { align: "center" })
-      .text("For custom support or returns, reach out anytime at: support@ricxstore.com", 55, footerTop + 80, { align: "center" });
+      .fillColor(SECONDARY)
+      .font("Helvetica")
+      .fontSize(9)
+      .text("Need help? support@ricxstore.com | www.ricxstore.com", 50, footerY + 42, {
+        align: "center",
+      })
+      .text(
+        "This is a computer-generated invoice and does not require a signature.",
+        50,
+        footerY + 58,
+        { align: "center" }
+      );
 
     doc.end();
   } catch (error) {
@@ -225,6 +309,9 @@ const generateInvoice = async (req, res) => {
   }
 };
 
+module.exports = {
+  generateInvoice,
+};
 module.exports = {
   generateInvoice,
 };
