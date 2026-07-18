@@ -296,3 +296,5 @@ All routes are mounted under `/api`:
 - **Seller payouts are a ledger, not real transfers.** The Earnings page shows gross sales, commission, and net earnings, but no money actually moves to sellers automatically — that would require Razorpay Route (or similar) marketplace payment splitting, which isn't implemented.
 - **Category filters sample from the first 100 products** rather than querying a dedicated categories list — fine for small-to-medium catalogs, but worth revisiting at scale.
 - **Bulk upload duplicate-checking** is scoped per seller (two sellers can list a product with the same name), but within one seller's own catalog, re-uploading a name that already exists will skip it rather than update it.
+#   R i c X - e C o m m e e r c e - P r o j e c t  
+ 
