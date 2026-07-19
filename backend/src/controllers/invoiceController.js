@@ -21,7 +21,7 @@ const generateInvoice = async (req, res) => {
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=RicX-Invoice-${order._id}.pdf`
+      `attachment; filename=RicX-Invoice-${order._id}.pdf`,
     );
     res.setHeader("Content-Type", "application/pdf");
 
@@ -36,10 +36,10 @@ const generateInvoice = async (req, res) => {
 
     // Generate invoice number
     const invoiceNumber = `RCX-${new Date().getFullYear()}${String(
-      new Date().getMonth() + 1
+      new Date().getMonth() + 1,
     ).padStart(2, "0")}${String(new Date().getDate()).padStart(
       2,
-      "0"
+      "0",
     )}-${order._id.toString().slice(-5).toUpperCase()}`;
 
     // ================= HEADER =================
@@ -70,7 +70,7 @@ const generateInvoice = async (req, res) => {
         `Date: ${new Date(order.createdAt).toLocaleDateString("en-IN")}`,
         350,
         100,
-        { align: "right" }
+        { align: "right" },
       );
 
     // Divider
@@ -119,22 +119,18 @@ const generateInvoice = async (req, res) => {
           order.shippingAddress?.state || ""
         }`,
         320,
-        top + 68
+        top + 68,
       )
       .text(
         `${order.shippingAddress?.country || ""} - ${
           order.shippingAddress?.pincode || ""
         }`,
         320,
-        top + 84
+        top + 84,
       );
 
     // Divider
-    doc
-      .strokeColor(BORDER)
-      .moveTo(50, 275)
-      .lineTo(545, 275)
-      .stroke();
+    doc.strokeColor(BORDER).moveTo(50, 275).lineTo(545, 275).stroke();
 
     // ================= ORDER INFO =================
     doc
@@ -172,12 +168,18 @@ const generateInvoice = async (req, res) => {
 
     y += 26;
 
-    // ================= PRODUCTS =================
+  // ================= PRODUCTS =================
     doc.font("Helvetica").fontSize(10);
 
     order.orderItems.forEach((item, index) => {
       const rowHeight = 32;
       const total = item.quantity * item.price;
+
+      // Check if row goes past layout thresholds to avoid overflow
+      if (y + rowHeight > 700) {
+        doc.addPage();
+        y = 50; // Reset Y position on new page
+      }
 
       if (index % 2 === 0) {
         doc.rect(50, y, 495, rowHeight).fill(LIGHT);
@@ -192,11 +194,11 @@ const generateInvoice = async (req, res) => {
           width: 40,
           align: "center",
         })
-        .text(`₹${item.price.toLocaleString("en-IN")}`, 410, y + 10, {
+        .text(`Rs. ${item.price.toLocaleString("en-IN")}`, 410, y + 10, {
           width: 60,
           align: "right",
         })
-        .text(`₹${total.toLocaleString("en-IN")}`, 480, y + 10, {
+        .text(`Rs. ${total.toLocaleString("en-IN")}`, 480, y + 10, {
           width: 55,
           align: "right",
         });
@@ -217,37 +219,48 @@ const generateInvoice = async (req, res) => {
     const discount = 0;
     const tax = 0;
 
-    const boxY = y + 25;
+    let boxY = y + 25;
+    
+    // Check if summary box clashes with footer placement
+    if (boxY + 140 > 720) {
+      doc.addPage();
+      boxY = 50;
+    }
 
-    doc.rect(330, boxY, 215, 120).fill(LIGHT);
+    doc.rect(330, boxY, 215, 140).fill(LIGHT); // Increased slightly to safely fit the larger TOTAL font size
 
     doc
       .fillColor(PRIMARY)
       .font("Helvetica")
       .fontSize(10)
       .text("Subtotal", 350, boxY + 18)
-   .text(`Rs. ${item.price.toLocaleString("en-IN")}`, 410, tableTop, {
-  width: 60,
-  align: "right",
-})
-
-    doc
-      .text("Shipping", 350, boxY + 40)
-      .text(shipping === 0 ? "FREE" : `₹${shipping}`, 430, boxY + 40, {
+      .text(`Rs. ${subtotal.toLocaleString("en-IN")}`, 430, boxY + 18, {
         width: 95,
         align: "right",
       });
 
     doc
+      .text("Shipping", 350, boxY + 40)
+      .text(
+        shipping === 0 ? "FREE" : `Rs. ${shipping.toLocaleString("en-IN")}`,
+        430,
+        boxY + 40,
+        {
+          width: 95,
+          align: "right",
+        },
+      );
+
+    doc
       .text("Discount", 350, boxY + 62)
-      .text(`-₹${discount}`, 430, boxY + 62, {
+      .text(`-Rs. ${discount.toLocaleString("en-IN")}`, 430, boxY + 62, {
         width: 95,
         align: "right",
       });
 
     doc
       .text("Tax", 350, boxY + 84)
-      .text(`₹${tax}`, 430, boxY + 84, {
+      .text(`Rs. ${tax.toLocaleString("en-IN")}`, 430, boxY + 84, {
         width: 95,
         align: "right",
       });
@@ -261,21 +274,23 @@ const generateInvoice = async (req, res) => {
     doc
       .font("Helvetica-Bold")
       .fontSize(14)
+      .fillColor(PRIMARY)
       .text("TOTAL", 350, boxY + 112)
       .fillColor(SUCCESS)
-      .text(`₹${order.totalAmount.toLocaleString("en-IN")}`, 430, boxY + 112, {
-        width: 95,
-        align: "right",
-      });
+      .text(
+        `Rs. ${order.totalAmount.toLocaleString("en-IN")}`,
+        430,
+        boxY + 112,
+        {
+          width: 95,
+          align: "right",
+        },
+      );
 
     // ================= FOOTER =================
     const footerY = 720;
 
-    doc
-      .strokeColor(BORDER)
-      .moveTo(50, footerY)
-      .lineTo(545, footerY)
-      .stroke();
+    doc.strokeColor(BORDER).moveTo(50, footerY).lineTo(545, footerY).stroke();
 
     doc
       .fillColor(PRIMARY)
@@ -289,14 +304,19 @@ const generateInvoice = async (req, res) => {
       .fillColor(SECONDARY)
       .font("Helvetica")
       .fontSize(9)
-      .text("Need help? ricx.ecommerce@gmail.com | www.ricxstore.com", 50, footerY + 42, {
-        align: "center",
-      })
+      .text(
+        "Need help? ricx.ecommerce@gmail.com | www.ricxstore.com",
+        50,
+        footerY + 42,
+        {
+          align: "center",
+        },
+      )
       .text(
         "This is a computer-generated invoice and does not require a signature.",
         50,
         footerY + 58,
-        { align: "center" }
+        { align: "center" },
       );
 
     doc.end();
@@ -309,9 +329,6 @@ const generateInvoice = async (req, res) => {
   }
 };
 
-module.exports = {
-  generateInvoice,
-};
 module.exports = {
   generateInvoice,
 };

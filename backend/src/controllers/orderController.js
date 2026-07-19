@@ -2,6 +2,29 @@ const Order = require("../model/orderModel");
 const Cart = require("../model/cartModel");
 const Product = require("../model/productModel");
 
+
+const {
+  validateCoupon,
+  markCouponUsed,
+} = require("./couponController");
+
+const computeCouponDiscount = (coupon, amount) => {
+  let discount = 0;
+  if (coupon.discountType === "percentage") {
+    discount = (Number(amount) * coupon.discountValue) / 100;
+    if (coupon.maxDiscount && coupon.maxDiscount > 0 && discount > coupon.maxDiscount) {
+      discount = coupon.maxDiscount;
+    }
+  }
+  if (coupon.discountType === "fixed") {
+    discount = coupon.discountValue;
+  }
+  if (discount > Number(amount)) {
+    discount = Number(amount);
+  }
+  return discount;
+};
+
 // ======================================
 // PLACE ORDER (Cart Checkout)
 // ======================================

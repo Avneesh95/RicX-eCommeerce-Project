@@ -52,6 +52,7 @@ const orderSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
+
       address: {
         type: String,
         required: true,
@@ -108,6 +109,15 @@ const orderSchema = new mongoose.Schema(
     razorpayPaymentId: String,
     razorpaySignature: String,
   },
+  couponCode: {
+      type: String,
+      default: null,
+    },
+
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
   {
     timestamps: true,
   }
